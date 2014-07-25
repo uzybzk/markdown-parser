@@ -54,10 +54,23 @@ func parseMarkdownLine(line string) string {
         return fmt.Sprintf("<h3>%s</h3>", strings.TrimPrefix(line, "### "))
     }
     
-    // Bold
-    if strings.Contains(line, "**") {
-        line = strings.ReplaceAll(line, "**", "<strong>")
-        line = strings.ReplaceAll(line, "</strong>", "</strong>")
+    // Bold - simple implementation
+    for strings.Contains(line, "**") {
+        start := strings.Index(line, "**")
+        if start == -1 {
+            break
+        }
+        
+        end := strings.Index(line[start+2:], "**")
+        if end == -1 {
+            break
+        }
+        
+        before := line[:start]
+        content := line[start+2 : start+2+end]
+        after := line[start+2+end+2:]
+        
+        line = before + "<strong>" + content + "</strong>" + after
     }
     
     // Empty line
