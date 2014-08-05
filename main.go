@@ -41,20 +41,38 @@ func parseMarkdown(filename string) error {
 }
 
 func parseMarkdownLine(line string) string {
+    original := line
     line = strings.TrimSpace(line)
     
     // Headers
     if strings.HasPrefix(line, "# ") {
-        return fmt.Sprintf("<h1>%s</h1>", strings.TrimPrefix(line, "# "))
+        content := strings.TrimPrefix(line, "# ")
+        content = parseInlineElements(content)
+        return fmt.Sprintf("<h1>%s</h1>", content)
     }
     if strings.HasPrefix(line, "## ") {
-        return fmt.Sprintf("<h2>%s</h2>", strings.TrimPrefix(line, "## "))
+        content := strings.TrimPrefix(line, "## ")
+        content = parseInlineElements(content)
+        return fmt.Sprintf("<h2>%s</h2>", content)
     }
     if strings.HasPrefix(line, "### ") {
-        return fmt.Sprintf("<h3>%s</h3>", strings.TrimPrefix(line, "### "))
+        content := strings.TrimPrefix(line, "### ")
+        content = parseInlineElements(content)
+        return fmt.Sprintf("<h3>%s</h3>", content)
     }
     
-    // Bold - simple implementation
+    // Empty line
+    if line == "" {
+        return "<br>"
+    }
+    
+    // Regular paragraph
+    content := parseInlineElements(line)
+    return fmt.Sprintf("<p>%s</p>", content)
+}
+
+func parseInlineElements(line string) string {
+    // Parse bold
     for strings.Contains(line, "**") {
         start := strings.Index(line, "**")
         if start == -1 {
@@ -73,11 +91,10 @@ func parseMarkdownLine(line string) string {
         line = before + "<strong>" + content + "</strong>" + after
     }
     
-    // Empty line
-    if line == "" {
-        return "<br>"
-    }
+    // Parse other inline elements
+    line = parseItalic(line)
+    line = parseCode(line)
+    line = parseLinks(line)
     
-    // Regular paragraph
-    return fmt.Sprintf("<p>%s</p>", line)
+    return line
 }
